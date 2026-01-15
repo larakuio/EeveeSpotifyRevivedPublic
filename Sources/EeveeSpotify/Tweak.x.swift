@@ -59,7 +59,7 @@ func activatePremiumPatchingGroup() {
 }
 
 struct EeveeSpotify: Tweak {
-    static let version = "6.4.9"
+    static let version = "6.5.0"
     
     static var hookTarget: VersionHookTarget {
         let version = Bundle.main.infoDictionary!["CFBundleShortVersionString"] as! String
@@ -71,7 +71,7 @@ struct EeveeSpotify: Tweak {
             return .lastAvailableiOS15
         case "8.9.8":
             return .lastAvailableiOS14
-        case "9.1.0", "9.1.6":
+        case "9.1.0", "9.1.6", "9.1.12":
             // 9.1.x versions don't have offline content helper classes
             return .v91
         default:
@@ -100,7 +100,7 @@ struct EeveeSpotify: Tweak {
             
             // Premium patching
             if UserDefaults.patchType.isPatching {
-                NSLog("[EeveeSpotify] ✅ Activating base premium patching for 9.1.x")
+
                 writeDebugLog("Activating base premium patching for 9.1.x")
                 BasePremiumPatchingGroup().activate()
                 writeDebugLog("Base premium patching activated")
@@ -109,7 +109,7 @@ struct EeveeSpotify: Tweak {
             // EXPERIMENTAL: Re-enable lyrics with comprehensive logging
             let lyricsEnabled = UserDefaults.lyricsSource.isReplacingLyrics
             writeDebugLog("Lyrics setting check - isReplacingLyrics: \(lyricsEnabled), rawValue: \(UserDefaults.lyricsSource.rawValue)")
-            NSLog("[EeveeSpotify] 📊 Lyrics enabled: \(lyricsEnabled), source: \(UserDefaults.lyricsSource.rawValue)")
+
             
             if lyricsEnabled {
                 NSLog("[EeveeSpotify] ========================================")
@@ -119,19 +119,18 @@ struct EeveeSpotify: Tweak {
                 writeDebugLog("EXPERIMENTAL: Activating lyrics hooks for 9.1.x")
                 BaseLyricsGroup().activate()
                 writeDebugLog("Base lyrics hooks activated")
-                NSLog("[EeveeSpotify] ✅ BaseLyricsGroup activated")
+
                 
                 // Use V91-specific lyrics group
                 V91LyricsGroup().activate()
                 writeDebugLog("V91 lyrics hooks activated for 9.1.x")
-                NSLog("[EeveeSpotify] ✅ V91LyricsGroup activated")
-                NSLog("[EeveeSpotify] 📝 Watch for '⭐️⭐️⭐️' in logs when opening lyrics")
+
             } else {
-                NSLog("[EeveeSpotify] ⚠️ Lyrics disabled in settings")
+
             }
             
             // Settings integration
-            NSLog("[EeveeSpotify] ✅ Activating universal settings integration for 9.1.x")
+
             writeDebugLog("Activating universal settings integration for 9.1.x")
             UniversalSettingsIntegrationGroup().activate()
             writeDebugLog("Universal settings integration activated")

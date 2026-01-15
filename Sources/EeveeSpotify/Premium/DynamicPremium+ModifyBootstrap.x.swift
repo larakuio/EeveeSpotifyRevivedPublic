@@ -73,7 +73,6 @@ class SpotifySessionDelegateBootstrapHook: ClassHook<NSObject>, SpotifySessionDe
                         activatePremiumPatchingGroup()
                     }
                     
-                    NSLog("[EeveeSpotify] Fetched bootstrap, \(UserDefaults.patchType) was set")
                 }
                 
                 if UserDefaults.patchType == .requests {
@@ -85,7 +84,6 @@ class SpotifySessionDelegateBootstrapHook: ClassHook<NSObject>, SpotifySessionDe
                         didReceiveData: try bootstrapMessage.serializedBytes()
                     )
                     
-                    NSLog("[EeveeSpotify] Modified bootstrap data")
                 }
                 else {
                     orig.URLSession(session, dataTask: task, didReceiveData: buffer)
@@ -95,7 +93,6 @@ class SpotifySessionDelegateBootstrapHook: ClassHook<NSObject>, SpotifySessionDe
                 return
             }
             catch {
-                NSLog("[EeveeSpotify] Unable to modify bootstrap data: \(error)")
             }
         }
         

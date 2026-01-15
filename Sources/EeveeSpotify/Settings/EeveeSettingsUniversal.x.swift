@@ -12,7 +12,6 @@ class UniversalProfileSettingsSectionHook: ClassHook<NSObject> {
     
     func numberOfRows() -> Int {
         let original = orig.numberOfRows()
-        NSLog("[EeveeSpotify] ProfileSettingsSection.numberOfRows = \(original)")
         return original + 1
     }
     
@@ -20,7 +19,6 @@ class UniversalProfileSettingsSectionHook: ClassHook<NSObject> {
         let originalRows = orig.numberOfRows()
         
         if row == originalRows {
-            NSLog("[EeveeSpotify] EeveeSpotify row selected")
             openEeveeSettingsFromHook()
             return
         }
@@ -46,7 +44,6 @@ class UniversalProfileSettingsSectionHook: ClassHook<NSObject> {
             
             tableViewCell.textLabel?.text = "EeveeSpotify"
             
-            NSLog("[EeveeSpotify] Created settings cell")
             return tableViewCell
         }
         
@@ -61,7 +58,6 @@ class UniversalProfileSettingsSectionHook: ClassHook<NSObject> {
         
         guard let rootController = rootSettingsController,
               let navigationController = rootController.navigationController else {
-            NSLog("[EeveeSpotify] Could not find navigation controller from settings")
             return
         }
         

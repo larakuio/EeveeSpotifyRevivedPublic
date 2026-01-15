@@ -10,28 +10,23 @@ var capturedTrackId: String?
 // Function to get metadata from MPNowPlayingInfoCenter
 func getSystemNowPlayingInfo() -> (title: String, artist: String)? {
     guard let info = MPNowPlayingInfoCenter.default().nowPlayingInfo else {
-        NSLog("[EeveeSpotify] ⚠️ No MPNowPlayingInfo available")
         return nil
     }
     
     guard let title = info[MPMediaItemPropertyTitle] as? String,
           let artist = info[MPMediaItemPropertyArtist] as? String else {
-        NSLog("[EeveeSpotify] ⚠️ MPNowPlayingInfo missing title or artist")
         return nil
     }
     
-    NSLog("[EeveeSpotify] ✅ Captured from System: '\(title)' by '\(artist)'")
     return (title, artist)
 }
 
 // Function to search the view hierarchy for track info
 func searchViewHierarchyForTrackInfo() -> (title: String?, artist: String?)? {
     guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
-        NSLog("[EeveeSpotify] 🔍 No key window found")
         return nil
     }
     
-    NSLog("[EeveeSpotify] 🔍 Searching view hierarchy for track info...")
     
     // Common UI labels to exclude (including artist page labels)
     let excludedLabels = ["Home", "Search", "Library", "Premium", "Your Library", 
@@ -71,7 +66,6 @@ func searchViewHierarchyForTrackInfo() -> (title: String?, artist: String?)? {
     
     searchView(window)
     
-    NSLog("[EeveeSpotify] 🔍 Found \(allLabels.count) total labels")
     
     // Filter to only labels with reasonable font sizes (> 10pt) and unique text
     var seenTexts = Set<String>()
@@ -83,7 +77,6 @@ func searchViewHierarchyForTrackInfo() -> (title: String?, artist: String?)? {
         return label.fontSize > 10.0 && isNewText
     }
     
-    NSLog("[EeveeSpotify] 🔍 After filtering: \(filteredLabels.count) unique labels")
     
     // Strategy: Track title is usually in a larger font than artist
     // Sort by font size (descending) then by Y position (ascending)
@@ -99,16 +92,12 @@ func searchViewHierarchyForTrackInfo() -> (title: String?, artist: String?)? {
         let title = sorted[0].text
         let artist = sorted[1].text
         
-        NSLog("[EeveeSpotify] 🎯 Selected title: '\(title)' (size: \(sorted[0].fontSize))")
-        NSLog("[EeveeSpotify] 🎯 Selected artist: '\(artist)' (size: \(sorted[1].fontSize))")
         
         return (title, artist)
     } else if sorted.count == 1 {
-        NSLog("[EeveeSpotify] ⚠️ Only found one label: '\(sorted[0].text)'")
         return nil // Don't use if we only find one
     }
     
-    NSLog("[EeveeSpotify] ❌ No suitable labels found")
     return nil
 }
 
@@ -121,13 +110,11 @@ class V91NPVScrollViewControllerMetadataHook: ClassHook<NSObject> {
     func viewWillAppear(_ animated: Bool) {
         orig.viewWillAppear(animated)
         
-        NSLog("[EeveeSpotify] 🔍 V91 NPVScrollViewController viewWillAppear called")
         
         // Try to search view hierarchy
         if let info = searchViewHierarchyForTrackInfo() {
             capturedTrackTitle = info.title
             capturedArtistName = info.artist
-            NSLog("[EeveeSpotify] ✅ Captured track info from view hierarchy!")
         }
     }
 }

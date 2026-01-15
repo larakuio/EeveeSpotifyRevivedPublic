@@ -20,7 +20,6 @@ private let petitLyricsRepository = PetitLyricsRepository()
 
 // Overload for 9.1.6 where we only have track ID from URL
 private func loadCustomLyricsForTrackId(_ trackId: String) throws -> Lyrics {
-    LogHelper.log("🔍 loadCustomLyricsForTrackId called for: \(trackId)")
     
     let source = UserDefaults.lyricsSource
     
@@ -28,9 +27,6 @@ private func loadCustomLyricsForTrackId(_ trackId: String) throws -> Lyrics {
     let hasMetadata = capturedTrackId == trackId && capturedTrackTitle != nil && capturedArtistName != nil
     
     if hasMetadata {
-        LogHelper.log("✅ Found captured metadata for track \(trackId)")
-        LogHelper.log("   Title: \(capturedTrackTitle ?? "nil")")
-        LogHelper.log("   Artist: \(capturedArtistName ?? "nil")")
     }
     
     // For 9.1.6: Genius/LRCLIB/Petit need track title/artist
@@ -38,8 +34,6 @@ private func loadCustomLyricsForTrackId(_ trackId: String) throws -> Lyrics {
     let needsMetadata = source == .genius || source == .lrclib || source == .petit
     
     if needsMetadata && !hasMetadata {
-        LogHelper.logError("⚠️ \(source) requires track metadata not captured yet for Spotify 9.1.6")
-        LogHelper.logError("💡 Use Musixmatch instead for guaranteed 9.1.6 compatibility")
         throw LyricsError.noSuchSong
     }
     
@@ -72,12 +66,9 @@ private func loadCustomLyricsForTrackId(_ trackId: String) throws -> Lyrics {
     lyricsState = LyricsLoadingState()
     
     do {
-        LogHelper.log("📥 Fetching lyrics from \(source) for track ID: \(trackId)")
         lyricsDto = try repository.getLyrics(searchQuery, options: options)
-        LogHelper.log("✅ Successfully fetched lyrics from \(source)")
     }
     catch let error {
-        LogHelper.logError("❌ Failed to fetch lyrics: \(error)")
         throw error
     }
     
@@ -88,26 +79,22 @@ private func loadCustomLyricsForTrackId(_ trackId: String) throws -> Lyrics {
     
     lyricsState.loadedSuccessfully = true
 
-    LogHelper.log("📊 Lyrics stats: \(lyricsDto.lines.count) lines, isEmpty: \(lyricsDto.lines.isEmpty), timeSynced: \(lyricsDto.timeSynced)")
 
     let lyrics = Lyrics.with {
         $0.data = lyricsDto.toSpotifyLyricsData(source: source.description)
     }
     
-    LogHelper.log("✅ Successfully created Lyrics object")
     return lyrics
 }
 
 //
 
 private func loadCustomLyricsForCurrentTrack() throws -> Lyrics {
-    NSLog("[EeveeSpotify] loadCustomLyricsForCurrentTrack called")
     
     guard
         let track = statefulPlayer?.currentTrack() ??
                     nowPlayingScrollViewController?.loadedTrack
         else {
-            NSLog("[EeveeSpotify] No current track found!")
             throw LyricsError.noCurrentTrack
         }
     
@@ -116,7 +103,6 @@ private func loadCustomLyricsForCurrentTrack() throws -> Lyrics {
         ? track.artistTitle()
         : track.artistName()
     
-    NSLog("[EeveeSpotify] Loading lyrics for: \(trackTitle) - \(artistName)")
     
     let searchQuery = LyricsSearchQuery(
         title: trackTitle,
@@ -211,7 +197,6 @@ private func loadCustomLyricsForCurrentTrack() throws -> Lyrics {
 }
 
 func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics? = nil) throws -> Data {
-    LogHelper.log("🔍 getLyricsDataForCurrentTrack called for path: \(originalPath)")
     
     // Extract track ID from URL path since player objects are nil in 9.1.6
     // Format: /color-lyrics/v2/track/{trackId} or /lyrics/.../{trackId}
@@ -219,15 +204,12 @@ func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics
     if let range = originalPath.range(of: #"/track/([a-zA-Z0-9]+)"#, options: .regularExpression) {
         let match = originalPath[range]
         trackIdentifier = String(match.split(separator: "/").last ?? "")
-        LogHelper.log("✅ Extracted track ID from URL: \(trackIdentifier)")
     } else {
-        LogHelper.logError("❌ Could not extract track ID from path: \(originalPath)")
         throw LyricsError.noCurrentTrack
     }
     
     // Verify track ID was extracted
     if trackIdentifier.isEmpty {
-        LogHelper.logError("❌ Extracted track ID is empty!")
         throw LyricsError.noCurrentTrack
     }
     
@@ -235,7 +217,6 @@ func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics
     // Always try to capture fresh metadata when track changes
     // Clear old metadata if track ID changed
     if capturedTrackId != trackIdentifier {
-        LogHelper.log("🔄 Track changed from \(capturedTrackId ?? "none") to \(trackIdentifier)")
         capturedTrackTitle = nil
         capturedArtistName = nil
         capturedTrackId = nil
@@ -244,14 +225,12 @@ func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics
         Thread.sleep(forTimeInterval: 0.3)
     }
     
-    LogHelper.log("🔍 Attempting to capture metadata for track \(trackIdentifier)...")
     
     // 1. Try MPNowPlayingInfoCenter first (System info)
     var info: (title: String?, artist: String?)? = getSystemNowPlayingInfo()
     
     // 2. Fallback to view hierarchy scraping if system info failed
     if info == nil {
-        LogHelper.log("⚠️ MPNowPlayingInfoCenter failed, falling back to view hierarchy scraping...")
         info = searchViewHierarchyForTrackInfo()
     }
 
@@ -259,9 +238,7 @@ func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics
         capturedTrackTitle = info.title
         capturedArtistName = info.artist
         capturedTrackId = trackIdentifier
-        LogHelper.log("✅ Captured metadata: '\(info.title ?? "")' by '\(info.artist ?? "")'")
     } else {
-        LogHelper.log("⚠️ Failed to capture metadata from any source")
         // Keep old metadata if we fail to capture new - better than nothing
     }
     
@@ -297,6 +274,5 @@ func getLyricsDataForCurrentTrack(_ originalPath: String, originalLyrics: Lyrics
     }
     
     let serializedData = try lyrics.serializedData()
-    LogHelper.log("📤 Returning lyrics data: \(serializedData.count) bytes")
     return serializedData
 }

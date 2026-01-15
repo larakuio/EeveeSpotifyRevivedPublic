@@ -6,7 +6,6 @@ struct LogHelper {
     private static let log = OSLog(subsystem: "com.eevee.spotify", category: "EeveeSpotify")
     
     static func log(_ message: String) {
-        // Use %{public}@ to make the message visible in Console.app
         os_log("%{public}@", log: log, type: .default, "[EeveeSpotify] \(message)")
     }
     
@@ -15,6 +14,6 @@ struct LogHelper {
     }
     
     static func logDebug(_ message: String) {
-        os_log("%{public}@", log: log, type: .debug, "[EeveeSpotify] 🔍 \(message)")
+        os_log("%{public}@", log: log, type: .debug, "[EeveeSpotify] \(message)")
     }
 }

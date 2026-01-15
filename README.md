@@ -2,7 +2,7 @@
 
 # EeveeSpotify
 
-**Updated and maintained by Skye - Current Version 9.1.6**
+**Updated and maintained by Skye - Current Version 9.1.12**
 
 **Last updated 12/31/25**
 
@@ -11,9 +11,14 @@ This tweak makes Spotify think you have a Premium subscription, granting free li
 > [!NOTE]
 > The original EeveeSpotify repository was disabled due to a [DMCA takedown](https://github.com/github/dmca/blob/master/2025/08/2025-08-14-spotify.md). This repository will not contain IPA packages in the repo itself.
 
-## Known Missing Features
+## Custom Lyrics Support
 
-- **Spotify 9.1.6** - Custom Lyrics
+**Spotify 9.1.12** - Full custom lyrics functionality is available with the following provider:
+
+- **Musixmatch** ✅ (Currently enabled)
+
+> [!NOTE]
+> Other providers (Genius, LRCLIB, PetitLyrics) are available in the code but disabled  in build.*
 
 ## How to build an EeveeSpotify IPA using Github actions
 > [!NOTE]
@@ -50,7 +55,7 @@ Please refrain from opening issues about the following features, as they are ser
 - AI DJ/Playlist
 - Spotify Connect (When using Spotify Connect, the device will act as a remote control and stream directly to the connected device. This is a server-sided limitation and is beyond the control of EeveeSpotify, so it will behave as if you have a Free subscription while using this feature.)
 
-**Note:** Spotify 9.1.6 runs in limited mode with premium patching only. Custom lyrics features are disabled for this version.
+**Note:** Spotify 9.1.x runs with full features including custom lyrics via Musixmatch.
 
 ## Lyrics Support (Spotify 9.1.0 only)
 

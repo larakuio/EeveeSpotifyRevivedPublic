@@ -12,7 +12,6 @@ private var isCapturingURLs = false
 func DataLoaderServiceHooks_startCapturing() {
     isCapturingURLs = true
     capturedURLs.removeAll()
-    LogHelper.log("🔍 Started capturing all network requests")
 }
 
 class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
@@ -25,8 +24,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
         
         let isLyricsURL = url.isLyrics
         if isLyricsURL {
-            NSLog("[EeveeSpotify] Lyrics URL detected: \(url.absoluteString)")
-            NSLog("[EeveeSpotify] BaseLyricsGroup.isActive = \(shouldReplaceLyrics)")
         }
         
         return (shouldReplaceLyrics && isLyricsURL)
@@ -45,22 +42,17 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
     ) {
         // Log request headers FIRST for ALL requests to lyrics endpoints
         if let url = task.currentRequest?.url, url.absoluteString.contains("lyrics") {
-            LogHelper.log("📋 Checking headers for: \(url.path)")
             if let request = task.currentRequest {
                 if let headers = request.allHTTPHeaderFields {
-                    LogHelper.log("📋 Lyrics request headers found (\(headers.count) total):")
                     for (key, value) in headers {
                         if key.lowercased().contains("auth") || key.lowercased().contains("token") || 
                            key.lowercased() == "user-agent" || key.lowercased() == "client-token" ||
                            key.lowercased() == "spotify-app-version" {
-                            LogHelper.log("  \(key): \(value.prefix(50))...")
                         }
                     }
                 } else {
-                    LogHelper.log("⚠️ No headers in request")
                 }
             } else {
-                LogHelper.log("⚠️ task.currentRequest is nil in didCompleteWithError")
             }
         }
         
@@ -72,7 +64,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
         // Capture ALL URLs when debugging
         if isCapturingURLs && capturedURLs.count < 50 {
             capturedURLs.append(url.absoluteString)
-            LogHelper.log("📡 Request #\(capturedURLs.count): \(url.absoluteString)")
             
             // After 15 requests, show popup with summary
             if capturedURLs.count == 15 {
@@ -110,12 +101,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
         let urlString = url.absoluteString.lowercased()
         if urlString.contains("lyric") {
             lyricsRequests += 1
-            LogHelper.log("⭐️⭐️⭐️ LYRICS URL #\(lyricsRequests) FOUND ⭐️⭐️⭐️")
-            LogHelper.log("URL: \(url.absoluteString)")
-            LogHelper.log("Path: \(url.path)")
-            LogHelper.log("Host: \(url.host ?? "no host")")
-            LogHelper.log("shouldModify: \(shouldModify(url))")
-            LogHelper.log("BaseLyricsGroup.isActive: \(BaseLyricsGroup.isActive)")
             
             // Show popup for first lyrics request
             if lyricsRequests == 1, let lastTime = lastPopupTime, Date().timeIntervalSince(lastTime) > 10 || lastPopupTime == nil {
@@ -131,7 +116,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
         
         // Also check for color-lyrics specifically
         if url.path.contains("color-lyrics") || url.path.contains("lyrics") {
-            LogHelper.log("🎵 Path contains 'lyrics': \(url.path)")
         }
         
         guard error == nil, shouldModify(url) else {
@@ -139,29 +123,23 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
             return
         }
         
-        LogHelper.log("🔄 About to modify lyrics request for: \(url.path)")
         
         // Log headers RIGHT HERE where we know code executes
         if url.isLyrics, let request = task.currentRequest {
             if let headers = request.allHTTPHeaderFields {
-                LogHelper.log("📋 Headers (\(headers.count) total):")
                 for (key, value) in headers.sorted(by: { $0.key < $1.key }) {
                     let truncated = value.count > 80 ? "\(value.prefix(80))..." : value
-                    LogHelper.log("  \(key): \(truncated)")
                 }
             }
         }
         
         guard let buffer = URLSessionHelper.shared.obtainData(for: url) else {
-            LogHelper.logError("❌ Failed to obtain buffer data for: \(url.path)")
             return
         }
         
-        LogHelper.log("✅ Got buffer data, size: \(buffer.count) bytes")
         
         do {
             if url.isLyrics {
-                LogHelper.log("🎵 Loading custom lyrics for: \(url.path)")
                 
                 let originalLyrics = try? Lyrics(serializedBytes: buffer)
                 
@@ -176,10 +154,8 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
                             url.path,
                             originalLyrics: originalLyrics
                         )
-                        LogHelper.log("✅ Custom lyrics fetched successfully")
                     } catch {
                         customLyricsError = error
-                        LogHelper.logError("❌ Custom lyrics fetch failed: \(error.localizedDescription)")
                     }
                     semaphore.signal()
                 }
@@ -189,7 +165,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
                 let result = semaphore.wait(timeout: timeout)
                 
                 if result == .success, let data = customLyricsData {
-                    LogHelper.log("✅ Using custom lyrics (fetched in time)")
                     respondWithCustomData(data, task: task, session: session)
                     
                     // Show popup indicating custom lyrics source - DISABLED FOR PRODUCTION
@@ -204,9 +179,7 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
                     orig.URLSession(session, task: task, didCompleteWithError: nil)
                 } else {
                     if result == .timedOut {
-                        LogHelper.log("⏱️ Custom lyrics timeout, using original")
                     } else {
-                        LogHelper.log("⚠️ Custom lyrics failed, using original")
                     }
                     respondWithCustomData(buffer, task: task, session: session)
                     
@@ -257,8 +230,6 @@ class SPTDataLoaderServiceHook: ClassHook<NSObject>, SpotifySessionDelegate {
             }
         }
         catch {
-            LogHelper.logError("❌ Exception while processing request: \(error.localizedDescription)")
-            LogHelper.logError("URL was: \(url.absoluteString)")
             orig.URLSession(session, task: task, didCompleteWithError: error)
         }
     }

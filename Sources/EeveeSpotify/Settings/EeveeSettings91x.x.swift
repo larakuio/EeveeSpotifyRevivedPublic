@@ -42,7 +42,6 @@ func showVersionBannerOnWindow(_ window: UIWindow) {
         }
     }
     
-    NSLog("[EeveeSpotify] Version banner shown")
 }
 
 // Hook UIWindow to show version banner when it becomes key
@@ -52,18 +51,15 @@ class UIWindowKeyHook: ClassHook<UIWindow> {
     func becomeKeyWindow() {
         orig.becomeKeyWindow()
         
-        NSLog("[EeveeSpotify] becomeKeyWindow called")
         
         // Check if we've already shown banner for this version
         let lastShownVersion = UserDefaults.standard.string(forKey: "EeveeSpotify_LastBannerVersion")
         let currentVersion = EeveeSpotify.version
         
         guard lastShownVersion != currentVersion else {
-            NSLog("[EeveeSpotify] Banner already shown for version \(currentVersion)")
             return
         }
         
-        NSLog("[EeveeSpotify] Will show banner for version \(currentVersion)")
         
         // Show banner after a longer delay to ensure UI is ready
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
@@ -71,16 +67,13 @@ class UIWindowKeyHook: ClassHook<UIWindow> {
             guard self.target.isKeyWindow, 
                   self.target.rootViewController != nil,
                   !self.target.isHidden else {
-                NSLog("[EeveeSpotify] Window not ready, skipping banner")
                 return
             }
             
-            NSLog("[EeveeSpotify] Showing banner now")
             showVersionBannerOnWindow(self.target)
             
             // Mark this version as shown AFTER successfully showing
             UserDefaults.standard.set(currentVersion, forKey: "EeveeSpotify_LastBannerVersion")
-            NSLog("[EeveeSpotify] Banner version saved: \(currentVersion)")
         }
     }
 }
